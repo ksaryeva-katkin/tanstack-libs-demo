@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useTaskQuery } from '../features/tasks/queries';
+import { useTaskQuery } from '../features/tasks';
 
 export const Route = createFileRoute('/tasks/$taskId')({
   component: TaskDetailsPage,

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useTasksQuery } from '../features/tasks/queries';
+import { useTasksQuery } from '../features/tasks';
 import type { Priority, Status } from '../mocks/types';
 
 type BoardSearch = {
