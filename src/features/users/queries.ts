@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { getUsers } from './api';
-
-export const userKeys = {
-  all: ['users'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,
-};
+import { userKeys } from './queryKeys';
 
 export const useUsersQuery = () =>
   useQuery({
     queryKey: userKeys.lists(),
     queryFn: getUsers,
+    // Users change rarely in this demo, so keep them fresh longer than tasks.
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
   });

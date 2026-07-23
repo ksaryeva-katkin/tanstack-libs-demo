@@ -82,9 +82,9 @@ export const tasks: Task[] = taskTitles.map((title, index) => {
 
 const eventTypes: ActivityEvent['type'][] = [
   'created',
-  'updated',
-  'commented',
   'status_changed',
+  'assignee_changed',
+  'priority_changed',
 ];
 
 export const activities: ActivityEvent[] = Array.from(
@@ -99,6 +99,10 @@ export const activities: ActivityEvent[] = Array.from(
       taskId: task.id,
       userId: user.id,
       type,
+      payload:
+        type === 'created'
+          ? { title: task.title }
+          : { from: index % 2 === 0 ? 'todo' : 'medium', to: task.status },
       message: `${user.name} ${type.replace('_', ' ')} ${task.title}`,
       createdAt: `2026-07-${String(1 + (index % 23)).padStart(2, '0')}T${String(
         9 + (index % 8),

@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-query-devtools": "^5.101.4",
     "@tanstack/react-router": "^1.170.18",
+    "@tanstack/react-router-devtools": "^1.167.0",
     "@vitejs/plugin-react": "latest",
     "msw": "latest",
     "react": "latest",
@@ -24,8 +26,8 @@
   },
   "devDependencies": {
     "@eslint/js": "latest",
-    "@tanstack/router-plugin": "^1.168.23",
     "@tailwindcss/postcss": "latest",
+    "@tanstack/router-plugin": "^1.168.23",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "autoprefixer": "latest",

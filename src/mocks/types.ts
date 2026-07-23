@@ -25,7 +25,8 @@ export type ActivityEvent = {
   id: string;
   taskId: string;
   userId: string;
-  type: 'created' | 'updated' | 'commented' | 'status_changed' | 'deleted';
+  type: 'created' | 'status_changed' | 'assignee_changed' | 'priority_changed';
+  payload?: Record<string, unknown>;
   message: string;
   createdAt: string;
 };

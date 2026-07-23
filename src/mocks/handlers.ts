@@ -1,11 +1,38 @@
 import { http, HttpResponse } from 'msw';
 import { activities, tasks, users } from './data';
-import type { Priority, Status, Task } from './types';
+import type { ActivityEvent, Priority, Status, Task } from './types';
 
 const API_BASE_URL = '/api';
+const PATCH_TASK_DELAY_MS = 650;
+const ENABLE_PATCH_TASK_RANDOM_ERRORS = false;
+const PATCH_TASK_RANDOM_ERROR_RATE = 0.1;
+const SYSTEM_USER_ID = 'user-1';
 
 const statuses: Status[] = ['todo', 'in_progress', 'done'];
 const priorities: Priority[] = ['low', 'medium', 'high'];
+
+const createActivity = (
+  task: Task,
+  type: ActivityEvent['type'],
+  payload?: ActivityEvent['payload'],
+) => {
+  const activity: ActivityEvent = {
+    id: crypto.randomUUID(),
+    taskId: task.id,
+    userId: task.assigneeId || SYSTEM_USER_ID,
+    type,
+    payload,
+    message: `${type.replace('_', ' ')}: ${task.title}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  activities.unshift(activity);
+};
+
+const wait = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 export const handlers = [
   http.get(`${API_BASE_URL}/tasks`, ({ request }) => {
@@ -61,11 +88,24 @@ export const handlers = [
     };
 
     tasks.push(task);
+    createActivity(task, 'created', { title: task.title });
 
     return HttpResponse.json(task, { status: 201 });
   }),
 
   http.patch(`${API_BASE_URL}/tasks/:id`, async ({ params, request }) => {
+    await wait(PATCH_TASK_DELAY_MS);
+
+    if (
+      ENABLE_PATCH_TASK_RANDOM_ERRORS &&
+      Math.random() < PATCH_TASK_RANDOM_ERROR_RATE
+    ) {
+      return HttpResponse.json(
+        { message: 'Random task update failure for optimistic update demo' },
+        { status: 500 },
+      );
+    }
+
     const taskIndex = tasks.findIndex((item) => item.id === params.id);
 
     if (taskIndex === -1) {
@@ -73,14 +113,36 @@ export const handlers = [
     }
 
     const payload = (await request.json()) as Partial<Task>;
+    const previousTask = tasks[taskIndex];
     const updatedTask: Task = {
-      ...tasks[taskIndex],
+      ...previousTask,
       ...payload,
-      id: tasks[taskIndex].id,
+      id: previousTask.id,
       updatedAt: new Date().toISOString(),
     };
 
     tasks[taskIndex] = updatedTask;
+
+    if (payload.status && payload.status !== previousTask.status) {
+      createActivity(updatedTask, 'status_changed', {
+        from: previousTask.status,
+        to: updatedTask.status,
+      });
+    }
+
+    if (payload.assigneeId && payload.assigneeId !== previousTask.assigneeId) {
+      createActivity(updatedTask, 'assignee_changed', {
+        from: previousTask.assigneeId,
+        to: updatedTask.assigneeId,
+      });
+    }
+
+    if (payload.priority && payload.priority !== previousTask.priority) {
+      createActivity(updatedTask, 'priority_changed', {
+        from: previousTask.priority,
+        to: updatedTask.priority,
+      });
+    }
 
     return HttpResponse.json(updatedTask);
   }),
@@ -93,6 +155,7 @@ export const handlers = [
     }
 
     tasks.splice(taskIndex, 1);
+    // Activity events are kept as immutable history after task deletion.
 
     return HttpResponse.json({ id: params.id });
   }),
