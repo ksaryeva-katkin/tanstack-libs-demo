@@ -7,6 +7,7 @@ import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import { useMemo } from 'react';
 import type { Task, User } from '../../../mocks/types';
 import { queryClient } from '../../../lib/query-client';
+import { usePendingTaskCreates } from '../../../lib/offline';
 import { usersCollection } from '../../users/collections';
 import { getTasks } from '../api/api';
 import { taskKeys } from '../api/keys';
@@ -56,15 +57,19 @@ const applyTaskFilters = (tasks: Task[], filters: TaskFilters = {}) =>
   });
 
 export const useTasksCollectionQuery = (filters: TaskFilters = {}) => {
+  const pendingTaskCreates = usePendingTaskCreates();
   const tasksQuery = useLiveQuery((query) =>
     query.from({ task: tasksCollection }).select(({ task }) => task),
   );
 
   const filteredTasks = useMemo(() => {
-    const tasks = (tasksQuery.data ?? []) as unknown as Task[];
+    const tasks = [
+      ...((tasksQuery.data ?? []) as unknown as Task[]),
+      ...pendingTaskCreates.map((item) => item.task),
+    ];
 
     return applyTaskFilters(tasks, filters);
-  }, [filters, tasksQuery.data]);
+  }, [filters, pendingTaskCreates, tasksQuery.data]);
 
   return {
     ...tasksQuery,
@@ -76,6 +81,7 @@ export const useTasksCollectionQuery = (filters: TaskFilters = {}) => {
 export const useTasksWithAssigneeCollectionQuery = (
   filters: TaskFilters = {},
 ) => {
+  const pendingTaskCreates = usePendingTaskCreates();
   const tasksQuery = useLiveQuery((query) =>
     query.from({ task: tasksCollection }).select(({ task }) => task),
   );
@@ -83,7 +89,10 @@ export const useTasksWithAssigneeCollectionQuery = (
     query.from({ user: usersCollection }).select(({ user }) => user),
   );
   const tasksWithAssignee = useMemo(() => {
-    const tasks = (tasksQuery.data ?? []) as unknown as Task[];
+    const tasks = [
+      ...((tasksQuery.data ?? []) as unknown as Task[]),
+      ...pendingTaskCreates.map((item) => item.task),
+    ];
     const users = (usersQuery.data ?? []) as unknown as User[];
     const usersById = new Map(users.map((user) => [user.id, user]));
 
@@ -91,7 +100,7 @@ export const useTasksWithAssigneeCollectionQuery = (
       ...task,
       assignee: usersById.get(task.assigneeId),
     }));
-  }, [tasksQuery.data, usersQuery.data]);
+  }, [pendingTaskCreates, tasksQuery.data, usersQuery.data]);
   const filteredTasks = useMemo(
     () => applyTaskFilters(tasksWithAssignee, filters) as TaskWithAssignee[],
     [filters, tasksWithAssignee],

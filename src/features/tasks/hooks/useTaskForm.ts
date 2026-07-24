@@ -1,6 +1,7 @@
 import { useForm, type AnyFieldApi } from '@tanstack/react-form';
 import { useMemo } from 'react';
 import type { Task } from '../../../mocks/types';
+import { addPendingTaskCreate, useIsOffline } from '../../../lib/offline';
 import { useCreateTaskMutation, useUpdateTaskMutation } from '../api';
 import { taskFormSchema, type TaskFormValues } from '../schemas';
 
@@ -60,6 +61,7 @@ export function useTaskForm({
   initialValues,
   onSuccess,
 }: UseTaskFormOptions) {
+  const isOffline = useIsOffline();
   const createTaskMutation = useCreateTaskMutation();
   const updateTaskMutation = useUpdateTaskMutation();
   const defaultValues = useMemo<TaskFormValues>(
@@ -78,6 +80,15 @@ export function useTaskForm({
     validators: { onChange: taskFormSchema },
     onSubmit: ({ value }) => {
       if (mode === 'create') {
+        if (isOffline) {
+          const task = addPendingTaskCreate(value);
+
+          localStorage.removeItem(draftStorageKey);
+          onSuccess?.(task);
+          form.reset(defaultTaskFormValues);
+          return;
+        }
+
         createTaskMutation.mutate(value, {
           onSuccess: (task) => {
             localStorage.removeItem(draftStorageKey);
@@ -108,7 +119,7 @@ export function useTaskForm({
     form,
     defaultValues,
     draftStorageKey,
-    isPending: activeMutation.isPending,
+    isPending: isOffline && mode === 'create' ? false : activeMutation.isPending,
     mutationError,
   };
 }

@@ -9,6 +9,14 @@ export const openTaskDetail = (taskId: string) => {
   }));
 };
 
+export const replaceSelectedTaskId = (previousTaskId: string, nextTaskId: string) => {
+  kanbanUIStore.setState((state) =>
+    state.selectedTaskId === previousTaskId
+      ? { ...state, selectedTaskId: nextTaskId }
+      : state,
+  );
+};
+
 export const closeTaskDetail = () => {
   kanbanUIStore.setState((state) => ({
     ...state,

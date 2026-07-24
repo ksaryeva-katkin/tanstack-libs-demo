@@ -8,6 +8,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { AppProviders } from '../app/AppProviders';
 import { TaskDetailPanel } from '../features/tasks/components/TaskDetailPanel';
 import { parseTaskFilters } from '../features/tasks';
+import { OfflineBanner, OfflineControls } from '../lib/offline';
 
 type RouterContext = {
   queryClient: QueryClient;
@@ -61,7 +62,11 @@ function RootLayout() {
                 </Link>
               ))}
             </nav>
+
+            <OfflineControls />
           </div>
+
+          <OfflineBanner />
         </header>
 
         <main className="mx-auto max-w-6xl px-6 py-8">

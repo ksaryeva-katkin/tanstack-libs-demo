@@ -6,6 +6,7 @@ import {
   useSelectedTaskId,
   useTaskQuery,
 } from '../';
+import { usePendingTaskCreateById } from '../../../lib/offline';
 import { useUsersQuery } from '../../users';
 import {
   taskPriorityLabels,
@@ -29,6 +30,7 @@ export function TaskDetailPanel() {
   const selectedTaskId = useSelectedTaskId();
   const isOpen = useIsDetailPanelOpen();
   const taskQuery = useTaskQuery(selectedTaskId);
+  const pendingTaskCreate = usePendingTaskCreateById(selectedTaskId);
   const usersQuery = useUsersQuery();
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const task = taskQuery.data;
@@ -131,6 +133,21 @@ export function TaskDetailPanel() {
                 <>
                   <div className="flex items-start justify-between gap-4">
                     <div>
+                      {pendingTaskCreate ? (
+                        <p
+                          className={`mb-3 inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${
+                            pendingTaskCreate.status === 'error'
+                              ? 'border-red-300/40 bg-red-400/10 text-red-100'
+                              : 'border-amber-300/40 bg-amber-300/10 text-amber-100'
+                          }`}
+                        >
+                          {pendingTaskCreate.status === 'syncing'
+                            ? 'Syncing'
+                            : pendingTaskCreate.status === 'error'
+                              ? `Sync error: ${pendingTaskCreate.error}`
+                              : 'Not synced yet'}
+                        </p>
+                      ) : null}
                       <h3 className="text-2xl font-semibold leading-8 text-white">
                         {task.title}
                       </h3>
@@ -140,6 +157,7 @@ export function TaskDetailPanel() {
                     </div>
                     <button
                       className="shrink-0 rounded-md bg-teal-400 px-3 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300/30"
+                      disabled={Boolean(pendingTaskCreate)}
                       onClick={() => setEditTaskId(task.id)}
                       type="button"
                     >

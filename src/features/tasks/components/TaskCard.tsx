@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useDraggable } from '@dnd-kit/core';
 import type { CSSProperties } from 'react';
+import { usePendingTaskCreateById } from '../../../lib/offline';
 import type { Task, User } from '../../../mocks/types';
 import { openTaskDetail, useCardViewMode } from '../store';
 import { TaskPriorityBadge } from './TaskBadges';
@@ -25,10 +26,11 @@ export function TaskCard({
   isOverlay = false,
 }: TaskCardProps) {
   const cardViewMode = useCardViewMode();
+  const pendingTaskCreate = usePendingTaskCreateById(task.id);
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: task.id,
     data: { task },
-    disabled: isOverlay,
+    disabled: isOverlay || Boolean(pendingTaskCreate),
   });
 
   const style: CSSProperties | undefined =
@@ -53,7 +55,13 @@ export function TaskCard({
       onClick={() => openTaskDetail(task.id)}
       className={`block rounded-md border border-zinc-800 bg-zinc-950 ${cardViewMode === 'compact' ? 'p-3' : 'p-4'} shadow-sm shadow-black/20 outline-none transition hover:border-teal-500/60 hover:bg-zinc-900 focus-visible:border-teal-300 focus-visible:ring-2 focus-visible:ring-teal-300/30 ${
         isDragging ? 'opacity-50' : ''
-      } ${isOverlay ? 'rotate-1 cursor-grabbing border-teal-400 shadow-xl shadow-black/40' : 'cursor-grab active:cursor-grabbing'}`}
+      } ${
+        isOverlay
+          ? 'rotate-1 cursor-grabbing border-teal-400 shadow-xl shadow-black/40'
+          : pendingTaskCreate
+            ? 'cursor-pointer border-amber-300/40'
+            : 'cursor-grab active:cursor-grabbing'
+      }`}
       {...attributes}
       {...listeners}
     >
@@ -73,9 +81,26 @@ export function TaskCard({
             <h4 className="break-words text-sm font-semibold leading-5 text-white">
               {task.title}
             </h4>
-            {cardViewMode === 'full' ? (
-              <TaskPriorityBadge priority={task.priority} />
-            ) : null}
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              {pendingTaskCreate ? (
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                    pendingTaskCreate.status === 'error'
+                      ? 'border-red-300/40 bg-red-400/10 text-red-100'
+                      : 'border-amber-300/40 bg-amber-300/10 text-amber-100'
+                  }`}
+                >
+                  {pendingTaskCreate.status === 'syncing'
+                    ? 'Syncing'
+                    : pendingTaskCreate.status === 'error'
+                      ? 'Sync error'
+                      : 'Unsynced'}
+                </span>
+              ) : null}
+              {cardViewMode === 'full' ? (
+                <TaskPriorityBadge priority={task.priority} />
+              ) : null}
+            </div>
           </div>
 
           {cardViewMode === 'full' ? (
