@@ -19,12 +19,14 @@ export const apiRequest = async <TData>(
   return (await response.json()) as TData;
 };
 
-export const toSearchParams = (filters: Record<string, string | undefined>) => {
+export const toSearchParams = (
+  filters: Record<string, number | string | undefined>,
+) => {
   const params = new URLSearchParams();
 
   Object.entries(filters).forEach(([key, value]) => {
-    if (value) {
-      params.set(key, value);
+    if (value !== undefined) {
+      params.set(key, String(value));
     }
   });
 

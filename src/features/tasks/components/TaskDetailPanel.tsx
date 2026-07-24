@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState } from 'react';
 import {
   closeTaskDetail,
@@ -23,6 +23,9 @@ const formatDate = (date: string) =>
 
 export function TaskDetailPanel() {
   const navigate = useNavigate();
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
   const selectedTaskId = useSelectedTaskId();
   const isOpen = useIsDetailPanelOpen();
   const taskQuery = useTaskQuery(selectedTaskId);
@@ -35,7 +38,10 @@ export function TaskDetailPanel() {
   const handleClose = () => {
     setEditTaskId(null);
     closeTaskDetail();
-    void navigate({ to: '/board' });
+
+    if (pathname.startsWith('/tasks/')) {
+      void navigate({ to: '/board' });
+    }
   };
 
   return (

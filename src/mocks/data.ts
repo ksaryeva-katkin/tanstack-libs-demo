@@ -87,26 +87,68 @@ const eventTypes: ActivityEvent['type'][] = [
   'priority_changed',
 ];
 
+const activityCount = 2400;
+const activityStartDate = new Date('2026-03-10T08:00:00.000Z');
+const activityEndDate = new Date('2026-07-24T15:30:00.000Z');
+const activityDateRangeMs =
+  activityEndDate.getTime() - activityStartDate.getTime();
+
+const getPreviousValue = (type: ActivityEvent['type'], index: number) => {
+  if (type === 'status_changed') {
+    return statuses[(index + 1) % statuses.length];
+  }
+
+  if (type === 'priority_changed') {
+    return priorities[(index + 2) % priorities.length];
+  }
+
+  if (type === 'assignee_changed') {
+    return users[(index + 3) % users.length].id;
+  }
+
+  return undefined;
+};
+
+const createActivityPayload = (
+  type: ActivityEvent['type'],
+  task: Task,
+  index: number,
+): ActivityEvent['payload'] => {
+  if (type === 'created') {
+    return { title: task.title };
+  }
+
+  return {
+    from: getPreviousValue(type, index),
+    to:
+      type === 'status_changed'
+        ? task.status
+        : type === 'priority_changed'
+          ? task.priority
+          : task.assigneeId,
+  };
+};
+
 export const activities: ActivityEvent[] = Array.from(
-  { length: 40 },
+  { length: activityCount },
   (_, index) => {
-    const task = tasks[index % tasks.length];
-    const user = users[index % users.length];
+    const task = tasks[(index * 7) % tasks.length];
+    const user = users[(index * 3) % users.length];
     const type = eventTypes[index % eventTypes.length];
+    const createdAt = new Date(
+      activityEndDate.getTime() -
+        Math.round((activityDateRangeMs * index) / activityCount) -
+        (index % 37) * 41_000,
+    ).toISOString();
 
     return {
       id: `${index + 1}`,
       taskId: task.id,
       userId: user.id,
       type,
-      payload:
-        type === 'created'
-          ? { title: task.title }
-          : { from: index % 2 === 0 ? 'todo' : 'medium', to: task.status },
+      payload: createActivityPayload(type, task, index),
       message: `${user.name} ${type.replace('_', ' ')} ${task.title}`,
-      createdAt: `2026-07-${String(1 + (index % 23)).padStart(2, '0')}T${String(
-        9 + (index % 8),
-      ).padStart(2, '0')}:15:00.000Z`,
+      createdAt,
     };
   },
 );

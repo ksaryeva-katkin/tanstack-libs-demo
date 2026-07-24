@@ -1,4 +1,6 @@
 export type ActivityFilters = {
+  limit?: number;
+  offset?: number;
   taskId?: string;
 };
 

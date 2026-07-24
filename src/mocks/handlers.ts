@@ -165,10 +165,16 @@ export const handlers = [
   http.get(`${API_BASE_URL}/activities`, ({ request }) => {
     const url = new URL(request.url);
     const taskId = url.searchParams.get('taskId');
+    const limitParam = url.searchParams.get('limit');
+    const offsetParam = url.searchParams.get('offset');
+    const offset = Math.max(Number(offsetParam ?? 0) || 0, 0);
+    const limit = limitParam ? Math.max(Number(limitParam) || 0, 0) : null;
     const result = taskId
       ? activities.filter((activity) => activity.taskId === taskId)
       : activities;
+    const pagedResult =
+      limit === null ? result : result.slice(offset, offset + limit);
 
-    return HttpResponse.json(result);
+    return HttpResponse.json(pagedResult);
   }),
 ];
