@@ -11,9 +11,12 @@ import {
 } from '@dnd-kit/core';
 import { useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
-import { useUsersQuery } from '../../users';
-import type { Status, Task, User } from '../../../mocks/types';
-import { useChangeTaskStatusMutation, useTasksQuery } from '../api';
+import type { Status } from '../../../mocks/types';
+import { useChangeTaskStatusMutation } from '../api';
+import {
+  useTasksWithAssigneeCollectionQuery,
+  type TaskWithAssignee,
+} from '../collections';
 import { useTaskFilters } from '../filters';
 import { taskStatusLabels, taskStatuses } from '../constants';
 import { groupTasksByStatus } from '../groupTasksByStatus';
@@ -30,15 +33,13 @@ import { ReactHookTaskForm } from './ReactHookTaskForm';
 
 type KanbanColumnProps = {
   status: Status;
-  tasks: Task[];
-  usersById: Map<string, User>;
+  tasks: TaskWithAssignee[];
   activeTaskId: string | null;
 };
 
 function KanbanColumn({
   status,
   tasks,
-  usersById,
   activeTaskId,
 }: KanbanColumnProps) {
   const { isOver, setNodeRef } = useDroppable({ id: status });
@@ -69,7 +70,7 @@ function KanbanColumn({
         {tasks.map((task) => (
           <TaskCard
             key={task.id}
-            assignee={usersById.get(task.assigneeId)}
+            assignee={task.assignee}
             isDragging={task.id === activeTaskId}
             task={task}
           />
@@ -82,8 +83,7 @@ function KanbanColumn({
 export function KanbanBoard() {
   const navigate = useNavigate();
   const { filters } = useTaskFilters();
-  const tasksQuery = useTasksQuery(filters);
-  const usersQuery = useUsersQuery();
+  const tasksQuery = useTasksWithAssigneeCollectionQuery(filters);
   const changeStatusMutation = useChangeTaskStatusMutation();
   const cardViewMode = useCardViewMode();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
@@ -103,10 +103,6 @@ export function KanbanBoard() {
   const tasksByStatus = useMemo(
     () => groupTasksByStatus(tasksQuery.data),
     [tasksQuery.data],
-  );
-  const usersById = useMemo(
-    () => new Map(usersQuery.data?.map((user) => [user.id, user]) ?? []),
-    [usersQuery.data],
   );
   const activeTask =
     tasksQuery.data?.find((task) => task.id === activeTaskId) ?? null;
@@ -177,7 +173,7 @@ export function KanbanBoard() {
             ))}
           </div>
           <span>{totalTasks} tasks</span>
-          {tasksQuery.isFetching || usersQuery.isFetching ? (
+          {tasksQuery.isFetching ? (
             <span className="text-teal-200">Syncing...</span>
           ) : (
             <span>Synced</span>
@@ -220,7 +216,6 @@ export function KanbanBoard() {
                   activeTaskId={activeTaskId}
                   status={status}
                   tasks={tasksByStatus[status]}
-                  usersById={usersById}
                 />
               ))}
             </div>
@@ -229,7 +224,7 @@ export function KanbanBoard() {
           <DragOverlay>
             {activeTask ? (
               <TaskCard
-                assignee={usersById.get(activeTask.assigneeId)}
+                assignee={activeTask.assignee}
                 isOverlay
                 task={activeTask}
               />

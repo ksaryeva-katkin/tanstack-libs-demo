@@ -7,7 +7,7 @@ import {
   Select,
   Textarea,
 } from '../../../components/ui';
-import { useUsersQuery } from '../../users';
+import { useUsersCollectionQuery } from '../../users';
 import { getFieldError, useTaskForm } from '../hooks';
 import { taskPriorityOptions, taskStatusOptions } from '../taskFormFields';
 import type { TaskFormValues } from '../schemas';
@@ -75,7 +75,7 @@ function TaskDraftAutosave({
 }
 
 export function TaskForm(props: TaskFormProps) {
-  const usersQuery = useUsersQuery();
+  const usersQuery = useUsersCollectionQuery();
   const { defaultValues, draftStorageKey, form, isPending, mutationError } =
     useTaskForm(props);
   const [draftCandidate, setDraftCandidate] = useState<TaskFormValues | null>(

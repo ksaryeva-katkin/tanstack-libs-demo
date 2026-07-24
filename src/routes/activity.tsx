@@ -3,10 +3,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityFeedPlain,
   ActivityFeedVirtual,
-  useActivitiesQuery,
+  useActivitiesCollectionQuery,
 } from '../features/activities';
-import { useTasksQuery } from '../features/tasks';
-import { useUsersQuery } from '../features/users';
+import { useTasksCollectionQuery } from '../features/tasks';
+import { useUsersCollectionQuery } from '../features/users';
 
 export const Route = createFileRoute('/activity')({
   component: ActivityPage,
@@ -20,9 +20,9 @@ function ActivityPage() {
   const [virtualRangeRows, setVirtualRangeRows] = useState(0);
   const [renderMs, setRenderMs] = useState(0);
   const renderStartedAt = useRef(0);
-  const activitiesQuery = useActivitiesQuery();
-  const tasksQuery = useTasksQuery();
-  const usersQuery = useUsersQuery();
+  const activitiesQuery = useActivitiesCollectionQuery();
+  const tasksQuery = useTasksCollectionQuery();
+  const usersQuery = useUsersCollectionQuery();
   const activities = activitiesQuery.data ?? [];
   const isLoading =
     activitiesQuery.isLoading || tasksQuery.isLoading || usersQuery.isLoading;

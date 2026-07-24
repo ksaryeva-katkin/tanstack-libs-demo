@@ -1,6 +1,7 @@
 export * from './api';
 export * from './components';
 export * from './constants';
+export * from './collections';
 export * from './filters';
 export * from './groupTasksByStatus';
 export * from './hooks';
