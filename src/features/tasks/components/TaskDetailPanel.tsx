@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import {
   closeTaskDetail,
   useIsDetailPanelOpen,
@@ -11,6 +12,7 @@ import {
   taskPriorityStyles,
   taskStatusLabels,
 } from '../constants';
+import { TaskForm } from './TaskForm';
 
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat('en', {
@@ -25,10 +27,13 @@ export function TaskDetailPanel() {
   const isOpen = useIsDetailPanelOpen();
   const taskQuery = useTaskQuery(selectedTaskId);
   const usersQuery = useUsersQuery();
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const task = taskQuery.data;
   const assignee = usersQuery.data?.find((user) => user.id === task?.assigneeId);
+  const isEditing = Boolean(task && editTaskId === task.id);
 
   const handleClose = () => {
+    setEditTaskId(null);
     closeTaskDetail();
     void navigate({ to: '/board' });
   };
@@ -87,51 +92,97 @@ export function TaskDetailPanel() {
 
           {task ? (
             <div className="space-y-6">
-              <div>
-                <h3 className="text-2xl font-semibold leading-8 text-white">
-                  {task.title}
-                </h3>
-                <p className="mt-3 text-sm leading-6 text-zinc-300">
-                  {task.description}
-                </p>
-              </div>
-
-              <dl className="grid gap-4 text-sm">
-                <div className="grid gap-1">
-                  <dt className="text-zinc-500">Status</dt>
-                  <dd className="font-medium text-zinc-100">
-                    {taskStatusLabels[task.status]}
-                  </dd>
-                </div>
-
-                <div className="grid gap-1">
-                  <dt className="text-zinc-500">Priority</dt>
-                  <dd>
-                    <span
-                      className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${taskPriorityStyles[task.priority]}`}
+              {isEditing ? (
+                <>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-lg font-semibold text-white">
+                      Edit task
+                    </h3>
+                    <button
+                      className="rounded-md border border-zinc-800 px-3 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300/30"
+                      onClick={() => setEditTaskId(null)}
+                      type="button"
                     >
-                      {taskPriorityLabels[task.priority]}
-                    </span>
-                  </dd>
-                </div>
+                      Cancel
+                    </button>
+                  </div>
 
-                <div className="grid gap-1">
-                  <dt className="text-zinc-500">Assignee</dt>
-                  <dd className="text-zinc-100">
-                    {assignee?.name ?? 'Unassigned'}
-                  </dd>
-                </div>
+                  <TaskForm
+                    initialValues={{
+                      assigneeId: task.assigneeId,
+                      description: task.description,
+                      dueDate: task.dueDate,
+                      priority: task.priority,
+                      status: task.status,
+                      title: task.title,
+                    }}
+                    mode="edit"
+                    onSuccess={() => setEditTaskId(null)}
+                    taskId={task.id}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-2xl font-semibold leading-8 text-white">
+                        {task.title}
+                      </h3>
+                      <p className="mt-3 text-sm leading-6 text-zinc-300">
+                        {task.description}
+                      </p>
+                    </div>
+                    <button
+                      className="shrink-0 rounded-md bg-teal-400 px-3 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300/30"
+                      onClick={() => setEditTaskId(task.id)}
+                      type="button"
+                    >
+                      Edit
+                    </button>
+                  </div>
 
-                <div className="grid gap-1">
-                  <dt className="text-zinc-500">Created</dt>
-                  <dd className="text-zinc-100">{formatDate(task.createdAt)}</dd>
-                </div>
+                  <dl className="grid gap-4 text-sm">
+                    <div className="grid gap-1">
+                      <dt className="text-zinc-500">Status</dt>
+                      <dd className="font-medium text-zinc-100">
+                        {taskStatusLabels[task.status]}
+                      </dd>
+                    </div>
 
-                <div className="grid gap-1">
-                  <dt className="text-zinc-500">Due date</dt>
-                  <dd className="text-zinc-100">{formatDate(task.dueDate)}</dd>
-                </div>
-              </dl>
+                    <div className="grid gap-1">
+                      <dt className="text-zinc-500">Priority</dt>
+                      <dd>
+                        <span
+                          className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${taskPriorityStyles[task.priority]}`}
+                        >
+                          {taskPriorityLabels[task.priority]}
+                        </span>
+                      </dd>
+                    </div>
+
+                    <div className="grid gap-1">
+                      <dt className="text-zinc-500">Assignee</dt>
+                      <dd className="text-zinc-100">
+                        {assignee?.name ?? 'Unassigned'}
+                      </dd>
+                    </div>
+
+                    <div className="grid gap-1">
+                      <dt className="text-zinc-500">Created</dt>
+                      <dd className="text-zinc-100">
+                        {formatDate(task.createdAt)}
+                      </dd>
+                    </div>
+
+                    <div className="grid gap-1">
+                      <dt className="text-zinc-500">Due date</dt>
+                      <dd className="text-zinc-100">
+                        {formatDate(task.dueDate)}
+                      </dd>
+                    </div>
+                  </dl>
+                </>
+              )}
             </div>
           ) : null}
         </div>
