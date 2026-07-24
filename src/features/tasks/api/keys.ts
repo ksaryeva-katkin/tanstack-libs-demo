@@ -5,5 +5,5 @@ export const taskKeys = {
   lists: () => [...taskKeys.all, 'list'] as const,
   list: (filters: TaskFilters) => [...taskKeys.lists(), filters] as const,
   details: () => [...taskKeys.all, 'detail'] as const,
-  detail: (id: string) => [...taskKeys.details(), id] as const,
+  detail: (id: string | null) => [...taskKeys.details(), id] as const,
 };

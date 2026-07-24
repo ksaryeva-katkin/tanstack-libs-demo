@@ -1,5 +1,5 @@
-import { apiRequest, toSearchParams } from '../../lib/api';
-import type { Priority, Status, Task } from '../../mocks/types';
+import { apiRequest, toSearchParams } from '../../../lib/api';
+import type { Priority, Status, Task } from '../../../mocks/types';
 
 export type TaskFilters = {
   status?: Status;

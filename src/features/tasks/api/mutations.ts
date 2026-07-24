@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { activityKeys } from '../activities';
-import type { Status, Task } from '../../mocks/types';
+import { activityKeys } from '../../activities';
+import type { Status, Task } from '../../../mocks/types';
 import {
   createTask,
   deleteTask,

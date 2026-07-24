@@ -15,6 +15,11 @@ import type { Status, Task, User } from '../../../mocks/types';
 import { useChangeTaskStatusMutation, useTasksQuery } from '../';
 import { taskStatusLabels, taskStatuses } from '../constants';
 import { groupTasksByStatus } from '../groupTasksByStatus';
+import {
+  setCardViewMode,
+  useCardViewMode,
+  type CardViewMode,
+} from '../store';
 import { TaskCard } from './TaskCard';
 
 type KanbanColumnProps = {
@@ -72,6 +77,7 @@ export function KanbanBoard() {
   const tasksQuery = useTasksQuery();
   const usersQuery = useUsersQuery();
   const changeStatusMutation = useChangeTaskStatusMutation();
+  const cardViewMode = useCardViewMode();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -119,6 +125,11 @@ export function KanbanBoard() {
     }
   };
 
+  const cardViewModes: Array<{ mode: CardViewMode; label: string }> = [
+    { mode: 'full', label: 'Full' },
+    { mode: 'compact', label: 'Compact' },
+  ];
+
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -129,7 +140,23 @@ export function KanbanBoard() {
           <h2 className="mt-1 text-2xl font-semibold text-white">Board</h2>
         </div>
 
-        <div className="flex items-center gap-3 text-sm text-zinc-400">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+          <div className="flex rounded-md border border-zinc-800 bg-zinc-950 p-1">
+            {cardViewModes.map((item) => (
+              <button
+                className={`rounded px-3 py-1 text-xs font-medium transition ${
+                  cardViewMode === item.mode
+                    ? 'bg-teal-400 text-zinc-950'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                key={item.mode}
+                onClick={() => setCardViewMode(item.mode)}
+                type="button"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
           <span>{totalTasks} tasks</span>
           {tasksQuery.isFetching || usersQuery.isFetching ? (
             <span className="text-teal-200">Syncing...</span>

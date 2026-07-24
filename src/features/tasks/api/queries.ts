@@ -11,10 +11,10 @@ export const useTasksQuery = (filters: TaskFilters = {}) =>
     gcTime: 5 * 60_000,
   });
 
-export const useTaskQuery = (id: string) =>
+export const useTaskQuery = (id: string | null) =>
   useQuery({
     queryKey: taskKeys.detail(id),
-    queryFn: () => getTask(id),
+    queryFn: () => getTask(id!),
     enabled: Boolean(id),
     // Task details share the board's moderate freshness window.
     staleTime: 30_000,

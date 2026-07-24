@@ -5,6 +5,7 @@ import {
 } from '@tanstack/react-router';
 import type { QueryClient } from '@tanstack/react-query';
 import { AppProviders } from '../app/AppProviders';
+import { TaskDetailPanel } from '../features/tasks/components/TaskDetailPanel';
 
 type RouterContext = {
   queryClient: QueryClient;
@@ -55,6 +56,7 @@ function RootLayout() {
         <main className="mx-auto max-w-6xl px-6 py-8">
           <Outlet />
         </main>
+        <TaskDetailPanel />
       </div>
     </AppProviders>
   );

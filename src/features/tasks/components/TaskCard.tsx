@@ -3,6 +3,7 @@ import { useDraggable } from '@dnd-kit/core';
 import type { CSSProperties } from 'react';
 import type { Task, User } from '../../../mocks/types';
 import { taskPriorityLabels, taskPriorityStyles } from '../constants';
+import { openTaskDetail, useCardViewMode } from '../store';
 
 type TaskCardProps = {
   task: Task;
@@ -23,6 +24,7 @@ export function TaskCard({
   isDragging = false,
   isOverlay = false,
 }: TaskCardProps) {
+  const cardViewMode = useCardViewMode();
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: task.id,
     data: { task },
@@ -48,7 +50,8 @@ export function TaskCard({
       params={{ taskId: task.id }}
       style={style}
       to="/tasks/$taskId"
-      className={`block rounded-md border border-zinc-800 bg-zinc-950 p-4 shadow-sm shadow-black/20 outline-none transition hover:border-teal-500/60 hover:bg-zinc-900 focus-visible:border-teal-300 focus-visible:ring-2 focus-visible:ring-teal-300/30 ${
+      onClick={() => openTaskDetail(task.id)}
+      className={`block rounded-md border border-zinc-800 bg-zinc-950 ${cardViewMode === 'compact' ? 'p-3' : 'p-4'} shadow-sm shadow-black/20 outline-none transition hover:border-teal-500/60 hover:bg-zinc-900 focus-visible:border-teal-300 focus-visible:ring-2 focus-visible:ring-teal-300/30 ${
         isDragging ? 'opacity-50' : ''
       } ${isOverlay ? 'rotate-1 cursor-grabbing border-teal-400 shadow-xl shadow-black/40' : 'cursor-grab active:cursor-grabbing'}`}
       {...attributes}
@@ -70,31 +73,37 @@ export function TaskCard({
             <h4 className="break-words text-sm font-semibold leading-5 text-white">
               {task.title}
             </h4>
-            <span
-              className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${taskPriorityStyles[task.priority]}`}
-            >
-              {taskPriorityLabels[task.priority]}
-            </span>
+            {cardViewMode === 'full' ? (
+              <span
+                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${taskPriorityStyles[task.priority]}`}
+              >
+                {taskPriorityLabels[task.priority]}
+              </span>
+            ) : null}
           </div>
 
-          <p className="mt-2 line-clamp-2 text-sm leading-5 text-zinc-400">
-            {task.description}
-          </p>
+          {cardViewMode === 'full' ? (
+            <>
+              <p className="mt-2 line-clamp-2 text-sm leading-5 text-zinc-400">
+                {task.description}
+              </p>
 
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-zinc-800 text-[11px] font-semibold text-zinc-200">
-                {initials}
-              </span>
-              <span className="truncate text-xs text-zinc-400">
-                {assignee?.name ?? 'Unassigned'}
-              </span>
-            </div>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-zinc-800 text-[11px] font-semibold text-zinc-200">
+                    {initials}
+                  </span>
+                  <span className="truncate text-xs text-zinc-400">
+                    {assignee?.name ?? 'Unassigned'}
+                  </span>
+                </div>
 
-            <span className="shrink-0 text-xs text-zinc-500">
-              Due {formatDueDate(task.dueDate)}
-            </span>
-          </div>
+                <span className="shrink-0 text-xs text-zinc-500">
+                  Due {formatDueDate(task.dueDate)}
+                </span>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
     </Link>

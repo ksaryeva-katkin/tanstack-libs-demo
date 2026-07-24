@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { KanbanBoard } from '../features/tasks/components/KanbanBoard';
 import type { Priority, Status } from '../mocks/types';
 import { taskPriorities, taskStatuses } from '../features/tasks/constants';
+import { closeTaskDetail, useIsDetailPanelOpen } from '../features/tasks';
 
 type BoardSearch = {
   status?: Status;
@@ -28,6 +30,13 @@ export const Route = createFileRoute('/board')({
 
 function BoardPage() {
   Route.useSearch();
+  const isDetailPanelOpen = useIsDetailPanelOpen();
+
+  useEffect(() => {
+    if (isDetailPanelOpen) {
+      closeTaskDetail();
+    }
+  }, [isDetailPanelOpen]);
 
   return <KanbanBoard />;
 }
