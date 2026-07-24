@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-router';
 import type { QueryClient } from '@tanstack/react-query';
 import { AppProviders } from '../app/AppProviders';
+import { KeyboardShortcuts } from '../features/tasks/components/KeyboardShortcuts';
 import { TaskDetailPanel } from '../features/tasks/components/TaskDetailPanel';
 import { parseTaskFilters } from '../features/tasks';
 import { OfflineBanner, OfflineControls } from '../lib/offline';
@@ -63,6 +64,7 @@ function RootLayout() {
               ))}
             </nav>
 
+            <KeyboardShortcuts />
             <OfflineControls />
           </div>
 
