@@ -4,8 +4,6 @@ import type { ActivityEvent, Priority, Status, Task } from './types';
 
 const API_BASE_URL = '/api';
 const PATCH_TASK_DELAY_MS = 650;
-const ENABLE_PATCH_TASK_RANDOM_ERRORS = false;
-const PATCH_TASK_RANDOM_ERROR_RATE = 0.1;
 const SYSTEM_USER_ID = 'user-1';
 
 const statuses: Status[] = ['todo', 'in_progress', 'done'];
@@ -95,16 +93,6 @@ export const handlers = [
 
   http.patch(`${API_BASE_URL}/tasks/:id`, async ({ params, request }) => {
     await wait(PATCH_TASK_DELAY_MS);
-
-    if (
-      ENABLE_PATCH_TASK_RANDOM_ERRORS &&
-      Math.random() < PATCH_TASK_RANDOM_ERROR_RATE
-    ) {
-      return HttpResponse.json(
-        { message: 'Random task update failure for optimistic update demo' },
-        { status: 500 },
-      );
-    }
 
     const taskIndex = tasks.findIndex((item) => item.id === params.id);
 
