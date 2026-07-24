@@ -1,4 +1,12 @@
-import { Button, FormField, Input, Select, Textarea } from '../../../components/ui';
+import { useThrottler } from '@tanstack/react-pacer';
+import { useEffect, useState } from 'react';
+import {
+  Button,
+  FormField,
+  Input,
+  Select,
+  Textarea,
+} from '../../../components/ui';
 import { useUsersQuery } from '../../users';
 import { getFieldError, useTaskForm } from '../hooks';
 import { taskPriorityOptions, taskStatusOptions } from '../taskFormFields';
@@ -6,9 +14,73 @@ import type { TaskFormValues } from '../schemas';
 
 type TaskFormProps = Parameters<typeof useTaskForm>[0];
 
+const normalizeTaskFormValues = (values: TaskFormValues): TaskFormValues => ({
+  assigneeId: values.assigneeId,
+  description: values.description,
+  dueDate: values.dueDate,
+  priority: values.priority,
+  status: values.status,
+  title: values.title,
+});
+
+const areTaskFormValuesEqual = (
+  left: TaskFormValues,
+  right: TaskFormValues,
+) =>
+  JSON.stringify(normalizeTaskFormValues(left)) ===
+  JSON.stringify(normalizeTaskFormValues(right));
+
+const readTaskDraft = (storageKey: string, defaultValues: TaskFormValues) => {
+  try {
+    const rawDraft = localStorage.getItem(storageKey);
+
+    if (!rawDraft) {
+      return null;
+    }
+
+    const draft = JSON.parse(rawDraft) as TaskFormValues;
+
+    if (areTaskFormValuesEqual(draft, defaultValues)) {
+      return null;
+    }
+
+    return draft;
+  } catch {
+    localStorage.removeItem(storageKey);
+    return null;
+  }
+};
+
+function TaskDraftAutosave({
+  storageKey,
+  values,
+}: {
+  storageKey: string;
+  values: TaskFormValues;
+}) {
+  const draftThrottler = useThrottler(
+    (nextValues: TaskFormValues) => {
+      localStorage.setItem(storageKey, JSON.stringify(nextValues));
+    },
+    // Throttle fits drafts because we want periodic saves during editing,
+    // not only one final save after typing stops.
+    { key: `${storageKey}:autosave-throttler`, wait: 1500 },
+  );
+
+  useEffect(() => {
+    draftThrottler.maybeExecute(values);
+  }, [draftThrottler, values]);
+
+  return null;
+}
+
 export function TaskForm(props: TaskFormProps) {
   const usersQuery = useUsersQuery();
-  const { form, isPending, mutationError } = useTaskForm(props);
+  const { defaultValues, draftStorageKey, form, isPending, mutationError } =
+    useTaskForm(props);
+  const [draftCandidate, setDraftCandidate] = useState<TaskFormValues | null>(
+    () => readTaskDraft(draftStorageKey, defaultValues),
+  );
 
   return (
     <form
@@ -24,6 +96,43 @@ export function TaskForm(props: TaskFormProps) {
           {mutationError}
         </div>
       ) : null}
+
+      {draftCandidate ? (
+        <div className="flex flex-col gap-3 rounded-md border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-between">
+          <span>Unsaved draft found. Restore it?</span>
+          <div className="flex gap-2">
+            <Button
+              className="px-2 py-1"
+              onClick={() => {
+                form.reset(draftCandidate, { keepDefaultValues: true });
+                setDraftCandidate(null);
+              }}
+              type="button"
+              variant="secondary"
+            >
+              Restore
+            </Button>
+            <Button
+              className="px-2 py-1"
+              onClick={() => {
+                localStorage.removeItem(draftStorageKey);
+                setDraftCandidate(null);
+              }}
+              type="button"
+              variant="secondary"
+            >
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <form.Subscribe
+        selector={(state) => state.values}
+        children={(values) => (
+          <TaskDraftAutosave storageKey={draftStorageKey} values={values} />
+        )}
+      />
 
       <form.Field
         name="title"

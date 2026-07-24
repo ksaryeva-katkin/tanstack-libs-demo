@@ -3,6 +3,7 @@ import { useRouter } from '@tanstack/react-router';
 import { TanStackDevtools as TanStackDevtoolsShell } from '@tanstack/react-devtools';
 import type { TanStackDevtoolsReactPlugin } from '@tanstack/react-devtools';
 import { formDevtoolsPlugin } from '@tanstack/react-form-devtools';
+import { pacerDevtoolsPlugin } from '@tanstack/react-pacer-devtools';
 import { TanstackQueryDevtoolsPanel } from '@tanstack/query-devtools';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/router-devtools';
 import { useEffect, useMemo, useRef } from 'react';
@@ -49,6 +50,7 @@ export function TanStackDevtools() {
         render: <TanStackRouterDevtoolsPanel router={router} />,
       },
       formDevtoolsPlugin(),
+      pacerDevtoolsPlugin(),
     ],
     [router],
   );

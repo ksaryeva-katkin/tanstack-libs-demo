@@ -20,6 +20,12 @@ export const defaultTaskFormValues: TaskFormValues = {
   dueDate: '',
 };
 
+export const getTaskDraftStorageKey = ({
+  mode,
+  taskId,
+}: Pick<UseTaskFormOptions, 'mode' | 'taskId'>) =>
+  mode === 'create' ? 'task-draft:create' : `task-draft:edit:${taskId}`;
+
 const getErrorMessage = (error: unknown) => {
   if (typeof error === 'string') {
     return error;
@@ -60,6 +66,7 @@ export function useTaskForm({
     () => ({ ...defaultTaskFormValues, ...initialValues }),
     [initialValues],
   );
+  const draftStorageKey = getTaskDraftStorageKey({ mode, taskId });
   const activeMutation =
     mode === 'create' ? createTaskMutation : updateTaskMutation;
   const mutationError =
@@ -73,6 +80,7 @@ export function useTaskForm({
       if (mode === 'create') {
         createTaskMutation.mutate(value, {
           onSuccess: (task) => {
+            localStorage.removeItem(draftStorageKey);
             onSuccess?.(task);
             form.reset(defaultTaskFormValues);
           },
@@ -88,6 +96,7 @@ export function useTaskForm({
         { id: taskId, input: value },
         {
           onSuccess: (task) => {
+            localStorage.removeItem(draftStorageKey);
             onSuccess?.(task);
           },
         },
@@ -97,6 +106,8 @@ export function useTaskForm({
 
   return {
     form,
+    defaultValues,
+    draftStorageKey,
     isPending: activeMutation.isPending,
     mutationError,
   };
