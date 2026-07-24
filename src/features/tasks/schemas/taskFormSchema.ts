@@ -7,26 +7,28 @@ export const taskFormLimits = {
   descriptionMaxLength: 2000,
 };
 
-export const taskFormSchema = z
-  .object({
-    title: z
-      .string()
-      .trim()
-      .min(1, 'Название обязательно')
-      .max(
-        taskFormLimits.titleMaxLength,
-        `Название должно быть не длиннее ${taskFormLimits.titleMaxLength} символов`,
-      ),
-    description: z
-      .string()
-      .max(
-        taskFormLimits.descriptionMaxLength,
-        `Описание должно быть не длиннее ${taskFormLimits.descriptionMaxLength} символов`,
-      ),
-    status: z.enum(taskStatuses),
-    priority: z.enum(taskPriorities),
-    assigneeId: z.string().min(1, 'Выберите исполнителя'),
-    dueDate: z.string().refine((value) => {
+export const taskFormSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(
+      taskFormLimits.titleMaxLength,
+      `Title must be ${taskFormLimits.titleMaxLength} characters or fewer`,
+    ),
+  description: z
+    .string()
+    .max(
+      taskFormLimits.descriptionMaxLength,
+      `Description must be ${taskFormLimits.descriptionMaxLength} characters or fewer`,
+    ),
+  status: z.enum(taskStatuses),
+  priority: z.enum(taskPriorities),
+  assigneeId: z.string().min(1, 'Select an assignee'),
+  dueDate: z
+    .string()
+    .min(1, 'Due date is required')
+    .refine((value) => {
       if (!value) {
         return true;
       }
@@ -36,17 +38,8 @@ export const taskFormSchema = z
       today.setHours(0, 0, 0, 0);
 
       return date >= today;
-    }, 'Срок выполнения не может быть в прошлом'),
-  })
-  .superRefine((value, context) => {
-    if (value.priority === 'high' && !value.dueDate) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Для высокого приоритета укажите срок выполнения',
-        path: ['dueDate'],
-      });
-    }
-  }) satisfies z.ZodType<{
+    }, 'Due date cannot be in the past'),
+}) satisfies z.ZodType<{
   title: string;
   description: string;
   status: Status;

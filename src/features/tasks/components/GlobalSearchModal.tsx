@@ -28,7 +28,10 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
       .filter((task) => task.title.toLowerCase().includes(normalizedQuery))
       .slice(0, 8);
   }, [query, tasksQuery.data]);
-  const activeResultIndex = Math.min(activeIndex, Math.max(results.length - 1, 0));
+  const activeResultIndex = Math.min(
+    activeIndex,
+    Math.max(results.length - 1, 0),
+  );
 
   useEffect(() => {
     window.setTimeout(() => inputRef.current?.focus(), 0);
@@ -121,7 +124,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
 
           {!tasksQuery.isLoading && results.length === 0 ? (
             <p className="px-3 py-8 text-center text-sm text-zinc-500">
-              Ничего не найдено
+              No results found
             </p>
           ) : null}
 
