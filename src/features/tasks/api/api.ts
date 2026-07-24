@@ -1,12 +1,6 @@
 import { apiRequest, toSearchParams } from '../../../lib/api';
-import type { Priority, Status, Task } from '../../../mocks/types';
-
-export type TaskFilters = {
-  status?: Status;
-  priority?: Priority;
-  assignee?: string;
-  search?: string;
-};
+import type { Task } from '../../../mocks/types';
+import type { TaskFilters } from '../filters';
 
 export type CreateTaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
 

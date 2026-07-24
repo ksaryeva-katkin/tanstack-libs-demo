@@ -2,8 +2,8 @@ import { Link } from '@tanstack/react-router';
 import { useDraggable } from '@dnd-kit/core';
 import type { CSSProperties } from 'react';
 import type { Task, User } from '../../../mocks/types';
-import { taskPriorityLabels, taskPriorityStyles } from '../constants';
 import { openTaskDetail, useCardViewMode } from '../store';
+import { TaskPriorityBadge } from './TaskBadges';
 
 type TaskCardProps = {
   task: Task;
@@ -74,11 +74,7 @@ export function TaskCard({
               {task.title}
             </h4>
             {cardViewMode === 'full' ? (
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${taskPriorityStyles[task.priority]}`}
-              >
-                {taskPriorityLabels[task.priority]}
-              </span>
+              <TaskPriorityBadge priority={task.priority} />
             ) : null}
           </div>
 

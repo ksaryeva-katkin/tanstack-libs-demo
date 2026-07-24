@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { getTask, getTasks, type TaskFilters } from './api';
+import { getTask, getTasks } from './api';
 import { taskKeys } from './keys';
+import type { TaskFilters } from '../filters';
 
 export const useTasksQuery = (filters: TaskFilters = {}) =>
   useQuery({

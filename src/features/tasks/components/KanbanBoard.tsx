@@ -13,7 +13,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { useUsersQuery } from '../../users';
 import type { Status, Task, User } from '../../../mocks/types';
-import { useChangeTaskStatusMutation, useTasksQuery } from '../';
+import { useChangeTaskStatusMutation, useTasksQuery } from '../api';
+import { useTaskFilters } from '../filters';
 import { taskStatusLabels, taskStatuses } from '../constants';
 import { groupTasksByStatus } from '../groupTasksByStatus';
 import {
@@ -23,6 +24,7 @@ import {
   type CardViewMode,
 } from '../store';
 import { TaskCard } from './TaskCard';
+import { TaskFiltersBar } from './TaskFiltersBar';
 import { TaskForm } from './TaskForm';
 import { ReactHookTaskForm } from './ReactHookTaskForm';
 
@@ -79,7 +81,8 @@ function KanbanColumn({
 
 export function KanbanBoard() {
   const navigate = useNavigate();
-  const tasksQuery = useTasksQuery();
+  const { filters } = useTaskFilters();
+  const tasksQuery = useTasksQuery(filters);
   const usersQuery = useUsersQuery();
   const changeStatusMutation = useChangeTaskStatusMutation();
   const cardViewMode = useCardViewMode();
@@ -181,6 +184,8 @@ export function KanbanBoard() {
           )}
         </div>
       </div>
+
+      <TaskFiltersBar />
 
       {tasksQuery.isLoading ? (
         <div className="rounded-md border border-zinc-800 bg-zinc-900/70 px-4 py-8 text-center text-sm text-zinc-400">

@@ -2,10 +2,12 @@ import {
   Link,
   Outlet,
   createRootRouteWithContext,
+  useRouterState,
 } from '@tanstack/react-router';
 import type { QueryClient } from '@tanstack/react-query';
 import { AppProviders } from '../app/AppProviders';
 import { TaskDetailPanel } from '../features/tasks/components/TaskDetailPanel';
+import { parseTaskFilters } from '../features/tasks';
 
 type RouterContext = {
   queryClient: QueryClient;
@@ -22,6 +24,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootLayout() {
+  const taskFilters = useRouterState({
+    select: (state) => parseTaskFilters(state.location.search),
+  });
+
   return (
     <AppProviders>
       <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -44,6 +50,11 @@ function RootLayout() {
                   }}
                   className="rounded-md border border-zinc-800 px-3 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-600 hover:text-white"
                   key={item.to}
+                  search={
+                    item.to === '/board' || item.to === '/table'
+                      ? taskFilters
+                      : undefined
+                  }
                   to={item.to}
                 >
                   {item.label}
